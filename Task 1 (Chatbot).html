@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule-Based Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #userInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendBtn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        #sendBtn:hover {
+            transform: translateY(-2px);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 18px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+                border-radius: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 Rule-Based Chatbot</h1>
+            <p>Ask me about weather, time, greetings, or anything!</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-content">
+                    Hello! 👋 I'm a rule-based chatbot. I can help you with:<br>
+                    - Weather updates<br>
+                    - Current time<br>
+                    - Greetings<br>
+                    - Jokes<br>
+                    - Math calculations<br>
+                    - And more! Try asking me something! 😊
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <div class="input-group">
+                <input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off">
+                <button id="sendBtn">Send</button>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                Bot is typing...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RuleBasedChatbot {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.userInput = document.getElementById('userInput');
+                this.sendBtn = document.getElementById('sendBtn');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                
+                this.initEventListeners();
+                this.welcomeMessage();
+            }
+
+            initEventListeners() {
+                this.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+            }
+
+            addMessage(content, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+                messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            showTypingIndicator() {
+                this.typingIndicator.style.display = 'block';
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            hideTypingIndicator() {
+                this.typingIndicator.style.display = 'none';
+            }
+
+            async sendMessage() {
+                const message = this.userInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                this.addMessage(message, true);
+                const userMessage = message.toLowerCase();
+                this.userInput.value = '';
+
+                // Show typing indicator
+                this.showTypingIndicator();
+
+                // Simulate typing delay
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    const response = this.getResponse(userMessage);
+                    this.addMessage(response);
+                }, 800 + Math.random() * 1200);
+            }
+
+            getResponse(userInput) {
+                // Rule-based pattern matching
+                const rules = [
+                    // Greetings
+                    { patterns: [/^hi|hello|hey|good morning|good afternoon|good evening/g], response: "Hello! 👋 How can I help you today?" },
+                    { patterns: [/^how are you|how's it going/g], response: "I'm doing great, thank you! 😊 How about you?" },
+                    { patterns: [/^bye|goodbye|see you/g], response: "Goodbye! 👋 Have a wonderful day!" },
+
+                    // Weather
+                    { patterns: [/weather|temperature|rain|sunny|cloudy|forecast/g], response: "🌤️ Today’s weather is sunny with a high of 24°C (75°F). Perfect day for a walk! Want tomorrow's forecast?" },
+
+                    // Time
+                    { patterns: [/time|clock|what time|hour/g], response: `🕐 Current time is ${new Date().toLocaleTimeString()}.` },
+
+                    // Name
+                    { patterns: [/your name|who are you|what's your name/g], response: "I'm RuleBot 🤖, your rule-based chatbot assistant!" },
+
+                    // Jokes
+                    { patterns: [/joke|funny|make me laugh/g], response: "Why don't scientists trust atoms? Because they make up everything! 😂 Want another one?" },
+
+                    // Math calculations
+                    { patterns: [/calculate|math|plus|minus|times|divide/g], response: this.handleMath(userInput) },
+
+                    // Help
+                    { patterns: [/help|what can you do|commands/g], response: "I can help with:<br>• Weather updates 🌤️<br>• Current time 🕐<br>• Jokes 😂<br>• Basic math ➕<br>• Greetings 👋<br>Just ask naturally!" },
+
+                    // Default responses
+                    { patterns: [/thanks|thank you|appreciate/g], response: "You're welcome! 😊" },
+                    { patterns: [/yes|yeah|sure|ok/g], response: "Great! What else can I help you with? 😄" },
+                    { patterns: [/no|nah|not really/g], response: "No problem! Let me know if you need anything else. 😊" }
+                ];
+
+                // Find matching rule
+                for (let rule of rules) {
+                    for (let pattern of rule.patterns) {
+                        if (pattern.test(userInput)) {
+                            return rule.response;
+                        }
+                    }
+                }
+
+                // Default fallback
+                const fallbacks = [
+                    "That's interesting! Can you tell me more? 🤔",
+                    "I see! What would you like to talk about next? 😊",
+                    "Hmm, I'm still learning. Try asking about weather, time, or jokes! 🌤️🕐😂",
+                    "Got it! Anything else on your mind? 💭"
+                ];
+                return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+            }
+
+            handleMath(input) {
+                const calcRegex = /(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)/i;
+                const match = input.match(calcRegex);
+                
+                if (match) {
+                    const num1 = parseFloat(match[1]);
+                    const operator = match[2];
+                    const num2 = parseFloat(match[3]);
+                    
+                    let result;
+                    switch (operator) {
+                        case '+': result = num1 + num2; break;
+                        case '-': result = num1 - num2; break;
+                        case '*': result = num1 * num2; break;
+                        case '/': 
+                            if (num2 === 0) return "Sorry, I can't divide by zero! 😅";
+                            result = num1 / num2; 
+                            break;
+                        default: return "I don't recognize that operation. Try +, -, *, or /";
+                    }
+                    
+                    return `✅ ${num1} ${operator} ${num2} = ${result.toFixed(2)}`;
+                }
+                return "Try something like: 'calculate 15 + 23' or 'what is 10 * 5'? ➕";
+            }
+
+            welcomeMessage() {
+                setTimeout(() => {
+                    this.addMessage("Type anything to get started! I'm ready to chat! 🚀");
+                }, 1000);
+            }
+        }
+
+        // Initialize chatbot when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new RuleBasedChatbot();
+        });
+    </script>
+</body>
+</html>
